@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Todo, TodoStatusType } from '../@models/todo.models';
+
+import { Todo, TodoClass, TodoStatusType } from '../@models/todo.models';
+import { TodoApiService } from './todo-api.service';
 
 @Component({
   selector: 'app-root',
@@ -16,12 +17,12 @@ export class AppComponent implements OnInit {
   todoInputModel = '';
   todoDataList: Todo[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private todoApiService: TodoApiService) {}
   ngOnInit(): void {
     this.getDate()
   }
   getDate() {
-    this.http.get<Todo[]>('/api/todo2_16').subscribe(x => {
+    this.todoApiService.getData().subscribe(x => {
       this.todoDataList = x
     })
   }
@@ -30,29 +31,28 @@ export class AppComponent implements OnInit {
     this.todoDataList.forEach((data) => {
       data.Status = this.toggleAllBtn;
     });
-    this.http.put('/api/todo2_16/Status' + this.toggleAllBtn, null).subscribe()
+    this.todoApiService.toggleAll(this.toggleAllBtn).subscribe()
   }
 
+  checkToggleAll() {
+    this.toggleAllBtn = this.todoCompleted.length === this.todoDataList.length
+  }
   clickCheck(item: Todo) {
     item.Status = !item.Status;
-    this.toggleAllBtn = this.todoDataList.every((todo) => todo.Status);
+    this.todoApiService.update(item).subscribe()
+    this.checkToggleAll()
   }
 
   delete(item: Todo) {
-    this.http.delete('/api/todo2_16/' + item.TodoId).subscribe()
+    this.todoApiService.delete(item).subscribe()
     this.todoDataList = this.todoDataList.filter(x => x !== item)
   }
 
   add() {
     if (this.todoInputModel.trim() === '') return;
-    const todo: Todo = {
-      Status: false,
-      Thing: this.todoInputModel,
-      Editing: false,
-      TodoId: ''
-    };
-    this.http.post<Todo>('/api/todo2_16',todo).subscribe(x => {
-      return this.todoDataList.push(x);
+    const todo: Todo = new TodoClass(this.todoInputModel, false)
+    this.todoApiService.add(todo).subscribe(x => {
+      this.todoDataList.push(x);
     })
     this.toggleAllBtn = false;
     this.todoInputModel = '';
@@ -63,7 +63,7 @@ export class AppComponent implements OnInit {
   }
 
   update(item: Todo) {
-    this.http.put('/api/todo2_16/' + item.TodoId,item).subscribe()
+    this.todoApiService.update(item).subscribe()
     item.Editing = false
   }
 
@@ -71,7 +71,7 @@ export class AppComponent implements OnInit {
     this.nowTodoStatusType = type;
   }
   clearCompleted() {
-    this.http.delete('/api/todo2_16/clearCompleted').subscribe();
+    this.todoApiService.clearCompleted().subscribe();
     this.todoDataList = this.todoActive;
   }
   get getNowTodo() {
