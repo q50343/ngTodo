@@ -22,7 +22,7 @@
     <label for="toggle-all">Mark all as complete</label>
     <ul class="todo-list">
       <li
-        *ngFor="let item of getNowTodo; let i = index"
+        *ngFor="let item of getNowTodo"
         [class]="{ completed: item.Status, editing: item.Editing }"
       >
         <div class="view">
@@ -33,14 +33,14 @@
             [checked]="item.Status"
           />
           <label (dblclick)="edit(item)">{{ item.Thing }}</label>
-          <button (click)="delete(i)" class="destroy"></button>
+          <button (click)="delete(item)" class="destroy"></button>
         </div>
         <input
           *ngIf="item.Editing"
           #itemInput
           [(ngModel)]="item.Thing"
-          (keyup.enter)="item.Editing = false"
-          (blur)="item.Editing = false"
+          (keyup.enter)="update(item)"
+          (blur)="update(item)"
           (mouseenter)="itemInput.focus()"
           class="edit"
         />

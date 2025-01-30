@@ -18,6 +18,9 @@ export class AppComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
   ngOnInit(): void {
+    this.getDate()
+  }
+  getDate() {
     this.http.get<Todo[]>('/api/todo2_16').subscribe(x => {
       this.todoDataList = x
     })
@@ -27,6 +30,7 @@ export class AppComponent implements OnInit {
     this.todoDataList.forEach((data) => {
       data.Status = this.toggleAllBtn;
     });
+    this.http.put('/api/todo2_16/Status' + this.toggleAllBtn, null).subscribe()
   }
 
   clickCheck(item: Todo) {
@@ -34,8 +38,9 @@ export class AppComponent implements OnInit {
     this.toggleAllBtn = this.todoDataList.every((todo) => todo.Status);
   }
 
-  delete(index: number) {
-    this.todoDataList.splice(index, 1);
+  delete(item: Todo) {
+    this.http.delete('/api/todo2_16/' + item.TodoId).subscribe()
+    this.todoDataList = this.todoDataList.filter(x => x !== item)
   }
 
   add() {
@@ -44,8 +49,11 @@ export class AppComponent implements OnInit {
       Status: false,
       Thing: this.todoInputModel,
       Editing: false,
+      TodoId: ''
     };
-    this.todoDataList.push(todo);
+    this.http.post<Todo>('/api/todo2_16',todo).subscribe(x => {
+      return this.todoDataList.push(x);
+    })
     this.toggleAllBtn = false;
     this.todoInputModel = '';
   }
@@ -54,11 +62,17 @@ export class AppComponent implements OnInit {
     item.Editing = true;
   }
 
+  update(item: Todo) {
+    this.http.put('/api/todo2_16/' + item.TodoId,item).subscribe()
+    item.Editing = false
+  }
+
   setStatus(type: TodoStatusType) {
     this.nowTodoStatusType = type;
   }
   clearCompleted() {
-    this.todoDataList = this.todoDataList.filter((x) => !x.Status);
+    this.http.delete('/api/todo2_16/clearCompleted').subscribe();
+    this.todoDataList = this.todoActive;
   }
   get getNowTodo() {
     let list: Todo[] = [];
