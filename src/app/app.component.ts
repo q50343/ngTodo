@@ -1,98 +1,64 @@
-import { Component, OnInit } from '@angular/core';
-
-import { Todo, TodoClass, TodoStatusType } from '../@models/todo.models';
-import { TodoApiService } from './todo-api.service';
+import { Component } from '@angular/core';
+import { Todo, TodoStatusType } from '../@models/todo.models';
+import { TodoService } from './todo.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'OneTodo';
   placeholder = 'What needs to be done????';
-  toggleAllBtn = false;
-  nowTodoStatusType = TodoStatusType.All;
   TodoStatusType = TodoStatusType;
   todoInputModel = '';
-  todoDataList: Todo[] = [];
-
-  constructor(private todoApiService: TodoApiService) {}
-  ngOnInit(): void {
-    this.getDate()
+  get getNowTodo() {
+    return this.todoService.getNowTodo;
   }
-  getDate() {
-    this.todoApiService.getData().subscribe(x => {
-      this.todoDataList = x
-    })
+  get todoActive(): Todo[] {
+    return this.todoService.todoActive;
+  }
+  get todoCompleted(): Todo[] {
+    return this.todoService.todoCompleted;
+  }
+  get toggleAllBtn() {
+    return this.todoService.toggleAllBtn
+  }
+  get nowTodoStatusType() {
+    return this.todoService.nowTodoStatusType
+  }
+  constructor(private todoService:TodoService) {}
+
+  add() {
+    this.todoService.add(this.todoInputModel)
+    this.todoInputModel = ''
   }
   toggleAll() {
-    this.toggleAllBtn = !this.toggleAllBtn;
-    this.todoDataList.forEach((data) => {
-      data.Status = this.toggleAllBtn;
-    });
-    this.todoApiService.toggleAll(this.toggleAllBtn).subscribe()
+    this.todoService.toggleAll()
   }
 
-  checkToggleAll() {
-    this.toggleAllBtn = this.todoCompleted.length === this.todoDataList.length
-  }
   clickCheck(item: Todo) {
-    item.Status = !item.Status;
-    this.todoApiService.update(item).subscribe()
-    this.checkToggleAll()
+    this.todoService.clickCheck(item)
   }
 
   delete(item: Todo) {
-    this.todoApiService.delete(item).subscribe()
-    this.todoDataList = this.todoDataList.filter(x => x !== item)
+    this.todoService.delete(item)
   }
 
-  add() {
-    if (this.todoInputModel.trim() === '') return;
-    const todo: Todo = new TodoClass(this.todoInputModel, false)
-    this.todoApiService.add(todo).subscribe(x => {
-      this.todoDataList.push(x);
-    })
-    this.toggleAllBtn = false;
-    this.todoInputModel = '';
-  }
 
   edit(item: Todo) {
     item.Editing = true;
   }
 
   update(item: Todo) {
-    this.todoApiService.update(item).subscribe()
-    item.Editing = false
+    this.todoService.update(item)
   }
 
   setStatus(type: TodoStatusType) {
-    this.nowTodoStatusType = type;
+    this.todoService.setStatus(type);
   }
   clearCompleted() {
-    this.todoApiService.clearCompleted().subscribe();
-    this.todoDataList = this.todoActive;
+    this.todoService.clearCompleted()
   }
-  get getNowTodo() {
-    let list: Todo[] = [];
-    switch (this.nowTodoStatusType) {
-      case TodoStatusType.Active:
-        list = this.todoActive;
-        break;
-      case TodoStatusType.Completed:
-        list = this.todoCompleted;
-        break;
-      default:
-        list = this.todoDataList;
-        break;
-    }
-    return list;
-  }
-  get todoActive(): Todo[] {
-    return this.todoDataList.filter((x) => !x.Status);
-  }
-  get todoCompleted(): Todo[] {
-    return this.todoDataList.filter((x) => x.Status);
-  }
+
 }
