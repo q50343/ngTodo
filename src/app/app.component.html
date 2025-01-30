@@ -1,0 +1,88 @@
+<section class="todoapp">
+  <header class="header">
+    <h1>
+      <div>{{ title }}</div>
+    </h1>
+    <input
+      class="new-todo"
+      [(ngModel)]="todoInputModel"
+      (keyup.enter)="add()"
+      [placeholder]="placeholder"
+      autofocus
+    />
+  </header>
+  <section class="main" style="display: block">
+    <input
+      id="toggle-all"
+      class="toggle-all"
+      type="checkbox"
+      [checked]="toggleAllBtn"
+      (click)="toggleAll()"
+    />
+    <label for="toggle-all">Mark all as complete</label>
+    <ul class="todo-list">
+      <li
+        *ngFor="let item of getNowTodo; let i = index"
+        [class]="{ completed: item.Status, editing: item.Editing }"
+      >
+        <div class="view">
+          <input
+            (click)="clickCheck(item)"
+            class="toggle"
+            type="checkbox"
+            [checked]="item.Status"
+          />
+          <label (dblclick)="edit(item)">{{ item.Thing }}</label>
+          <button (click)="delete(i)" class="destroy"></button>
+        </div>
+        <input
+          *ngIf="item.Editing"
+          #itemInput
+          [(ngModel)]="item.Thing"
+          (keyup.enter)="item.Editing = false"
+          (blur)="item.Editing = false"
+          (mouseenter)="itemInput.focus()"
+          class="edit"
+        />
+      </li>
+    </ul>
+  </section>
+  <footer class="footer" style="display: block">
+    <span class="todo-count"
+      ><strong>{{ todoActive.length }}</strong> items left</span
+    >
+    <ul class="filters">
+      <li>
+        <a
+          [class.selected]="nowTodoStatusType === TodoStatusType.All"
+          (click)="setStatus(TodoStatusType.All)"
+          href="#/"
+          >All</a
+        >
+      </li>
+      <li>
+        <a
+          [class.selected]="nowTodoStatusType === TodoStatusType.Active"
+          (click)="setStatus(TodoStatusType.Active)"
+          href="#/active"
+          >Active</a
+        >
+      </li>
+      <li>
+        <a
+          [class.selected]="nowTodoStatusType === TodoStatusType.Completed"
+          (click)="setStatus(TodoStatusType.Completed)"
+          href="#/completed"
+          >Completed</a
+        >
+      </li>
+    </ul>
+    <button
+      class="clear-completed"
+      (click)="clearCompleted()"
+      *ngIf="todoCompleted.length"
+    >
+      Clear completed
+    </button>
+  </footer>
+</section>
